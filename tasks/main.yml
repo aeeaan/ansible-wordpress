@@ -1,2 +1,62 @@
 ---
-# tasks file for correcthorse.wordpress
+- name: install wp-cli
+  get_url:
+    url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+    dest: /usr/local/bin/wp
+    owner: root
+    group: root
+    mode: 0755
+  tags:
+    - wordpress
+    - wp-cli
+    - packages
+
+- name: cron wp-cli updates
+  cron:
+    name: update wp-cli
+    job: "/usr/local/bin/wp cli update --yes"
+    hour: 3
+    minute: 0
+    state: present
+  tags:
+    - wordpress
+    - wp-cli
+    - configuration
+
+- name: download wordpress
+  command: > 
+    /usr/local/bin/wp core download 
+    --path="{{ wordpress_app_root }}" --allow-root
+  args:
+    creates: "{{ wordpress_app_root }}/index.php"
+  become: true
+  become_user: "{{ wordpress_user }}"
+  tags:
+    - wordpress
+
+- name: configure wordpress
+  command: >
+    /usr/local/bin/wp config create
+    --allow-root --path="{{ wordpress_app_root }}"
+    --dbname="{{ wordpress_db }}" --dbuser="{{ wordpress_db_user }}" 
+    --dbpass="{{ wordpress_db_password }}" --dbhost="{{ wordpress_db_host }}"
+  args:
+    creates: "{{ wordpress_app_root }}/wp-config.php"
+  become: true
+  become_user: "{{ wordpress_user }}"
+  register: configured_wordpress
+  tags:
+    - wordpress
+
+- name: install wordpress
+  command: >
+    /usr/local/bin/wp core install
+    --allow-root --path="{{ wordpress_app_root }}"
+    --url="{{ wordpress_url }}" --title="{{ wordpress_title }}"
+    --admin_name="{{ wordpress_admin_name }}" --admin_email="{{ wordpress_admin_email }}"
+    --admin_password="{{ wordpress_admin_password }}"
+  when: configured_wordpress is changed
+  become: true
+  become_user: "{{ wordpress_user }}"
+  tags:
+    - wordpress

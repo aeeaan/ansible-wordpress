@@ -1,2 +1,12 @@
 ---
-# defaults file for correcthorse.wordpress
+wordpress_user: wordpress
+wordpress_app_root: /var/www/wordpress/www
+wordpress_db: wordpress
+wordpress_db_user: wordpress
+wordpress_db_password: ""
+wordpress_db_host: localhost
+wordpress_url: http://localhost/
+wordpress_title: Just another wordpress site.
+wordpress_admin_name: admin
+wordpress_admin_email: ""
+wordpress_admin_password: ""
